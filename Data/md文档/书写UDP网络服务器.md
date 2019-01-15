@@ -283,6 +283,34 @@ ssize_t recvfrom(int socket, const void* message, size_t length,
 
 
 
+### 5.3 scp命令
+
+> **基于ssh登录进行的网络安全的远程文件拷贝命令**
+>
+> 例：要将**自己当前路径下的clinet文件发送到主机IP为192.168.153.140的home目录下**
+>
+> ``` c++
+> scp ./clinet root@192.168.153.140:/home
+> ```
+>
+>  
+
+
+
+### 5.4 关于防火墙的命令
+
+> - **启动：**`systemctl start firewalld `
+> - **关闭：**`systemctl stop firewalld`
+> - **查看状态：**`systemctl status firewalld`
+> - **开机禁用：**`systemctl disable firewalld`
+> - **开机启用：**`systemctl enable firewalld`
+>
+> 
+>
+> 
+
+
+
 ## # 对于UDP书写服务器的思路
 
 > 由于UDP是无连接的，所以对于两个处于同一局域网下计算机的进程之间通信，所以是不需要两台计算机之间的进程进行连接的，对于UDP使用的接口是需要包含知道从哪里接收消息的，要发送消息到哪里的。
