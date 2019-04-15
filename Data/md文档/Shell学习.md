@@ -854,7 +854,7 @@ Shell脚本中没有{}括号，所以用fi来表示if语句块的结束
 
 ### 2.3 空代码块
 
-**如果在代码块中，出现了空语句情况Ian，什么都不写，shell会直接报错，那怎么解决呢？**
+**如果在代码块中，出现了空语句情况，什么都不写，shell会直接报错，那怎么解决呢？**
 
 `:`是一个特殊的命令，称为空命令，该命令不做任何事，但是退出码总是真。此外，也可以执行/bin/true或/bin/false得到真的或者假的Exit Status
 
@@ -901,4 +901,1034 @@ read myint
 &&相当于“if...then...”，而||相当于"if not...then...".&&和||用于连接两个命令，而上面所讲的-a或-o仅用于在测试表达式中连接两个测试条件
 
 
+
+### 2.5 case和esac
+
+case可类比C语言的switch/case语句，esac表示case语句块的结束。C语言的case只能匹配整形或字符型常量表达式。而Shell脚本的case可以匹配字符串和Wildcard，每个匹配分支可以有若干条命令，**末尾必须以;;结束**，**执行时找到第一个匹配的分支并执行相应的命令，然后直接跳到esac之后**，不需要像C语言一样用break跳出。
+
+```shell
+[yk@localhost 3_lesson]$ ./test.sh 
+restart
+restart
+[yk@localhost 3_lesson]$ ./test.sh 
+Restart
+restart
+[yk@localhost 3_lesson]$ ./test.sh 
+hello
+start
+[yk@localhost 3_lesson]$ ./test.sh 
+-s
+stop
+[yk@localhost 3_lesson]$ cat test.sh 
+#!/bin/bash 
+
+str='hello'
+read mystr 
+case $mystr in 
+#case $1 in 
+  "$str" )
+    echo "start"
+    ;;
+  'stop'| "-s" )
+    echo "stop"
+    ;;
+   [Rr]estart )
+    echo "restart"
+    ;;
+  'down' )
+    echo "down"
+    ;;
+  'up' )
+    echo "up"
+    ;;
+  * )
+    echo "default"
+    ;;
+esac
+```
+
+`$1`是一个特殊变量，再执行脚本是自动取值为第一个命令行参数。
+
+尝试关闭ssh服务：
+
+``` shell
+sudo /etc/init.d/sshd stop
+```
+
+断开连接之后，一般就连不上Linux服务器了。一般只能在Linux终端上重启了，成功之后就可以重新连接
+
+``` shell
+sudo /etc/init.d start
+```
+
+**系统服务的脚本目录/etc/init.d**
+
+
+
+## 3. 循环语句
+
+### 3.1 类C循环
+
+Shell脚本的for循环结构和C语言很不一样，但是也有类似C语言的写法
+
+``` shell
+for i in {1,2,3,4}
+do 
+  echo $i
+done
+
+for ((i = 0; i <= 10; i++))
+do 
+  echo "hello$i"
+done
+```
+
+对于`(())`这个结构，在这个结构中，所有的运算和C都是一样的
+
+对于for...in...就相当于C++的foreach循环
+
+
+
+### 3.2 for in 循环
+
+该循环的强大之处是可以遍历字符，然后还可以进行全排列
+
+``` shell
+#遍历两个范围
+for i in {1..4} {a..f}
+do 
+  echo "$i"
+done 
+
+#全排列
+for i in {1..3}{a..d}
+do 
+  echo "$i"
+done 
+
+#遍历字符
+for i in {a..z}
+do 
+  echo "$i"
+done 
+
+for i in {1..10}
+do 
+  echo "$i"
+done
+```
+
+
+
+### 3.3 while循环
+
+``` shell
+i=0
+while [ $i -le 10 ]
+do 
+  echo "hello $i"
+  let i++
+done
+```
+
+**【注意】：对于while循环一定要注意索引的自增以及对于判断条件一定要初始化**
+
+
+
+### 3.4 until循环
+
+这是一种shell特有的循环
+
+``` shell
+i=10
+until [ $i -le 0 ]
+do 
+  echo "hello $i"
+  let i--
+done
+```
+
+**直到循环**
+
+
+
+### 3.5 死循环
+
+- **for死循环**
+
+``` shell
+for (( ; ; ))
+do 
+  echo "hello"
+done
+```
+
+
+
+- **while死循环**
+
+``` shell
+while :
+do 
+  echo "hello"
+done
+```
+
+
+
+- **until死循环**
+
+``` shell
+until false
+do 
+  echo "hello"
+done
+
+until /bin/false
+do 
+  echo "hello"
+done
+```
+
+
+
+### 3.6 命令行循环
+
+``` shell
+[yk@localhost 3_lesson]$ i=0;while [ $i -le 10 ];do echo "hello";let i++;done
+hello
+hello
+hello
+hello
+hello
+hello
+hello
+hello
+hello
+hello
+hello
+```
+
+
+
+### 3.7 练习
+
+- 求1~100的和
+
+``` shell
+sum=0
+for ((i = 1;i <= 100; i++))
+do 
+  let sum+=$i;
+done 
+echo "$sum"
+```
+
+
+
+- 打印出加的结果
+
+``` shell
+sum=0
+for ((i = 1;i <= 100; i++))
+do
+  if [ -z $str ];then
+    str=$i
+  else
+    str=$str'+'$i
+  fi 
+  let sum+=$i;
+done 
+echo "$str""=$sum"
+```
+
+
+
+- 求1~100的奇数和
+
+``` shell
+sum=0
+for ((i = 1; i <= 100; i += 2))
+do 
+  let sum+=$i
+done  
+echo "$sum"
+```
+
+
+
+## 4. 位置参数和特殊变量
+
+### 4.1 特殊变量
+
+**有很多的特殊变量是被shell自动赋值的**
+
+- `$0`：相当于C语言main函数的argv[0]，还有`$1、$2、$3`相当于argv[1],argv[2]等等
+- `$#`：相当于C语言的argc-1
+- `$@`：表示参数列表
+- `$?`：上一条命令的Exit Status
+- `$$`：当前Shell的进程号
+
+``` shell
+[yk@localhost 3_lesson]$ ./test.sh 1 2 3 4
+$0 -> ./test.sh
+$1 -> 1
+$2 -> 2
+$3 -> 3
+$# -> 4
+$@ -> 1 2 3 4
+$$ -> 11788
+[yk@localhost 3_lesson]$ cat test.sh 
+#!/bin/bash 
+
+echo "\$0 -> $0"
+echo "\$1 -> $1"
+echo "\$2 -> $2"
+echo "\$3 -> $3"
+echo "\$# -> $#"
+echo "\$@ -> $@"
+echo "\$$ -> $$"
+```
+
+
+
+### 4.2 位置参数（shift）
+
+**位置参数可以使用shift命令左移。比如`shift 3`表示原来的`$4`变成了`$1`，原来的`$1`,`$2`,`$3`都被丢弃了。`$0`不移动。不带参数的shift命令相当于`shift 1`**
+
+``` shell
+[yk@localhost 3_lesson]$ ./test.sh 1 2 3 4
+##############shift before###############
+$0 -> ./test.sh
+$1 -> 1
+$2 -> 2
+$3 -> 3
+$# -> 4
+$@ -> 1 2 3 4
+$$ -> 11983
+##############shift after###############
+$0 -> ./test.sh
+$1 -> 2
+$2 -> 3
+$3 -> 4
+$# -> 3
+$@ -> 2 3 4
+$$ -> 11983
+[yk@localhost 3_lesson]$ cat test.sh 
+#!/bin/bash 
+
+echo "##############shift before###############"
+echo "\$0 -> $0"
+echo "\$1 -> $1"
+echo "\$2 -> $2"
+echo "\$3 -> $3"
+echo "\$# -> $#"
+echo "\$@ -> $@"
+echo "\$$ -> $$"
+
+shift #shift 1
+echo "##############shift after###############"
+echo "\$0 -> $0"
+echo "\$1 -> $1"
+echo "\$2 -> $2"
+echo "\$3 -> $3"
+echo "\$# -> $#"
+echo "\$@ -> $@"
+echo "\$$ -> $$"
+```
+
+
+
+### 4.3 如何遍历命令行参数
+
+- **使用shift**
+
+``` shell
+while [ $# -gt 0 ]
+do 
+  echo "$1"
+  shift
+done
+```
+
+
+
+- **使用for in**
+
+``` shell
+for i in $@
+do 
+  echo "$i"
+done
+```
+
+
+
+## 5. 函数
+
+### 5.1 定义（function）
+
+和C语言类似，Shell也有函数的概念，但是特殊的是，**函数定义中没有返回值也没有参数列表**
+
+``` shell
+function myfun()
+{
+    echo "hello"
+}
+```
+
+【**注意】：函数体的做花括号和后面的命令之间必须有空格或者换行；如果将最后一条命令和右花括号写在了同一行，命令末尾必须有；号**
+
+在定义函数myfun()的时候并**不执行函数体中的命令**，就像定义变量一样，只是**给myfun()这个名字一个定义**，到后面调用的时候（**注意函数调用不写括号**）才执行函数体中的命令
+
+``` shell
+[yk@localhost 3_lesson]$ ./test.sh 
+hello
+[yk@localhost 3_lesson]$ cat test.sh 
+#!/bin/bash 
+
+
+function myfun()
+{
+  echo "hello"
+}
+```
+
+Shell脚本中函数先定义后调用，一般把函数定义都写在脚本前面，把函数调用和其他命令写在脚本后面。
+
+
+
+### 5.2 函数传参
+
+传参时，将shell函数当成迷你脚本
+
+shell函数没有参数列表并不表示不能传参数，事实上，函数就像是迷你脚本，调用函数是可以传任意个参数，在函数内部使用`$1`,`$2`等变量来提取参数
+
+``` shell
+[yk@localhost 3_lesson]$ ./test.sh 
+hello
+1
+2
+3
+[yk@localhost 3_lesson]$ cat test.sh 
+#!/bin/bash 
+
+
+function myfun()
+{
+  echo "hello"
+  echo "$1"
+  echo "$2"
+  echo "$3"
+}
+```
+
+**对于`$0`并不作为函数参数进行传参任务**
+
+
+
+### 5.3 函数返回值
+
+- **使用return返回**
+
+函数调用或者返回是，将shell函数当成命令。只要是命令那么函数的调用成功与否，可以通过`$?`来判定。一般函数中可以使用return命令返回，如果return后面跟一个数字则表示函数的ExitStatus。
+
+``` shell
+[yk@localhost 3_lesson]$ ./test.sh 
+1
+[yk@localhost 3_lesson]$ cat test.sh 
+#!/bin/bash 
+
+
+function fun()
+{
+  return 1;
+}
+
+fun 
+echo $?
+```
+
+
+
+- **echo方式**
+
+**也就是采用命令代换的方式**
+
+``` shell
+[yk@localhost 3_lesson]$ ./test.sh 
+sucess
+0
+[yk@localhost 3_lesson]$ cat test.sh 
+#!/bin/bash 
+
+
+function fun()
+{
+  echo "sucess"
+  return 1;
+}
+```
+
+这种方式也就是函数内部只能有一条string输出
+
+
+
+## 6. shell脚本的调试方法
+
+shell脚本本身，调试没有C/C++那么多的调试方法和工具，一般我们常规的方法，shell都支持。但主要通过调试选项来进行
+
+- -n：读一遍脚本中的命令但不执行，用于检测脚本中的语法错误
+- -v：一边执行脚本，一边将执行过的脚本命令打印到标准错误输出
+- -x：提供跟踪执行信息，将执行的每一条命令和结果都打印出来
+
+使用这些选项一般有三种方法：
+
+一是在命令行使用
+
+``` shell
+bash test.sh -x
+```
+
+二是在脚本开头提供参数
+
+``` shell
+#!/bin/bash -x
+```
+
+三是在脚本中用set命令启用或禁用参数
+
+``` shell
+[yk@localhost 3_lesson]$ ./test.sh 
+sucess
++ echo 0
+0
+[yk@localhost 3_lesson]$ cat test.sh  
+#!/bin/bash 
+
+
+function fun()
+{
+  echo "sucess"
+  return 1;
+}
+
+set +x
+ret=$(fun)
+echo "$ret"
+set -x
+echo $?
+```
+
+
+
+## 7. 数组
+
+数组中可以存放多个值。Bash Shell只支持一维数组，初始化是不需要定义数组大小。并且没有限定数组的大小。与大部分编程语言类似，数组元素的下标由0开始。获取数组中的元素要利用下标，下标可以是整数或算术表达式，其值应大于或等于0
+
+**Shell数组用括号来表示，元素用”空格“分割开，可以不适用连续的下标，而且下标没有限制**
+
+获取单个元素：
+
+**`${arr[index]}`**
+
+``` shell
+[yk@localhost 3_lesson]$ ./test.sh 
+0: 1
+1: 2.23
+2: hello
+3: b
+1 2.23 hello b
+1 2.23 hello b
+[yk@localhost 3_lesson]$ cat test.sh 
+#!/bin/bash 
+
+arr=(1 2.23 "hello" 'b')
+
+echo "0: ${arr[0]}"
+echo "1: ${arr[1]}"
+echo "2: ${arr[2]}"
+echo "3: ${arr[3]}"
+
+echo ${arr[*]}
+echo ${arr[@]}
+```
+
+获取全部元素：
+
+**`${arr[@]}`,` ${arr[*]}`**
+
+获取数组长度：
+
+**`${#arr[@]}`,` ${#arr[*]}`**
+
+``` shell
+echo ${#arr[*]}
+echo ${#arr[@]}
+```
+
+遍历数组：
+
+``` shell
+arr=(1 2.23 "hello" 'b')
+
+i=0
+while [ $i -lt ${#arr[@]} ]
+do 
+  echo "$i:  ${arr[$i]}"
+  let i++
+done
+
+#建议使用for in比较简单
+for i in ${arr[@]}
+do 
+  echo $i
+done 
+```
+
+
+
+## 8. shell和文件
+
+大多数UNIX系统命令从你的终端接收输入并将产生的输出发送回到你的终端。。一个命令通常从一个叫标准输入
+的地方读取输入，默认情况下，这恰好是你的终端。同样，一个命令通常将其输出写入到标准输出，默认情况下，这也是你的终端
+
+C/C++当中，读取文件需要相关函数来进行完成，但shell就简单多了
+
+
+
+### 8.1 shell输出重定向
+
+``` shell
+[yk@localhost 3_lesson]$ cat file1
+0hello
+1hello
+2hello
+3hello
+4hello
+5hello
+6hello
+7hello
+8hello
+9hello
+10hello
+[yk@localhost 3_lesson]$ cat file
+hello world
+[yk@localhost 3_lesson]$ cat test.sh 
+#!/bin/bash 
+
+#循环结果和单个字符串进行输出重定向
+echo "hello world" > file
+for (( i = 0; i <= 10; i++ ))
+do 
+  echo "${i}hello"
+done > file1 
+```
+
+
+
+### 8.2 追加重定向
+
+``` shell
+[yk@localhost 3_lesson]$ cat file
+hello world
+hello world two
+[yk@localhost 3_lesson]$ cat file1
+0hello
+1hello
+2hello
+3hello
+4hello
+5hello
+6hello
+7hello
+8hello
+9hello
+10hello
+0hello world
+1hello world
+2hello world
+3hello world
+[yk@localhost 3_lesson]$ cat test.sh 
+#!/bin/bash 
+
+
+echo "hello world two" >> file
+for (( i = 0; i <= 3; i++ ))
+do 
+  echo "${i}hello world"
+done >> file1 
+```
+
+
+
+### 8.3 输入重定向
+
+- **read每次只能读取一行内容**
+
+``` shell
+[yk@localhost 3_lesson]$ ./test.sh 
+hello world
+[yk@localhost 3_lesson]$ cat file
+hello world
+hello world two
+[yk@localhost 3_lesson]$ cat test.sh 
+#!/bin/bash 
+
+read line < file
+echo "$line"
+```
+
+
+
+- **采用read读取多行内容**
+
+``` shell
+[yk@localhost 3_lesson]$ ./test.sh 
+hello world
+hello world two
+[yk@localhost 3_lesson]$ cat test.sh 
+#!/bin/bash 
+
+while read line
+do 
+  echo "$line"
+done < file
+```
+
+
+
+- **采用read读取整个文件并且进行备份**
+
+``` shell
+[yk@localhost 3_lesson]$ cat file.bak 
+hello world
+hello world two
+[yk@localhost 3_lesson]$ cat file
+hello world
+hello world two
+[yk@localhost 3_lesson]$ cat test.sh 
+#!/bin/bash 
+
+
+while read line
+do 
+  echo "$line"
+done < file >> file.bak
+```
+
+【注意】：默认情况下，我们把stdout > file,file < stdin
+
+|      命令       |                     说明                      |
+| :-------------: | :-------------------------------------------: |
+| command > file  |              将输出重定向到file               |
+| command > file  |              将输入重定向到file               |
+| command >> file |        将输出以追加的方式重定向到file         |
+|    n > file     |       将文件描述符为n的文件重定向到file       |
+|    n >> file    | 将文件描述符为n的文件以追加的方式重定向到file |
+|     n >& m      |              将输出文件m和n合并               |
+|     n <& m      |              将输入文件m和n合并               |
+|     << tag      | 将开始标记tag和结束标记tag之间的内容作为输入  |
+
+
+
+如果我们希望重定向stderr可以这样，
+
+``` shell
+[yk@localhost 3_lesson]$ find a 2> file
+[yk@localhost 3_lesson]$ cat file
+find: ‘a’: No such file or directory
+```
+
+如果我们希望stderr追加到file文件末尾
+
+``` shell
+[yk@localhost 3_lesson]$ find a 2> file
+[yk@localhost 3_lesson]$ find b 2>> file
+[yk@localhost 3_lesson]$ cat file
+find: ‘a’: No such file or directory
+find: ‘b’: No such file or directory
+```
+
+2表示标准错误文件（stderr）
+
+如果我们希望将stdout和stderr合并后重定向到file
+
+``` shell
+command > file 2>&1
+
+command > file 2>>&1
+```
+
+如果希望对 stdin 和 stdout 都重定向，可以这样写： 
+
+``` shell
+command < file1 >file2
+```
+
+command 命令将 stdin 重定向到 file1，将 stdout 重定向到 file2
+
+
+
+### 8.4 Here Document
+
+Here Document是Shell中一种特殊的重定向方式，用将输入重定向到一个交互式的Shell脚本或者程序。
+
+``` shell
+commmand << delimiter
+	document
+deli
+```
+
+它的作用是将两个delimiter之间的内容（document）作为输入传递给command
+
+- 结尾的delimiter一定要顶格写，前面不能有任何的字符，后面也不能有任何的字符，包括空格和tab缩进
+- 开始的deliemiter前后的空格会被忽略掉
+
+例：
+
+``` shell
+[yk@localhost 3_lesson]$ ./here.sh 
+2
+[yk@localhost 3_lesson]$ cat here.sh 
+#!/bin/bash
+
+wc -l  << EOF
+  欢迎来到
+  ahahhaha
+EOF
+```
+
+
+
+### 8.5 /dev/null文件
+
+如果希望执行某个命令，但又不希望在屏幕上显示输出结果，那么可以将输出重定向到 /dev/null： 
+
+``` shell
+command > /dev/null
+```
+
+/dev/null 是一个特殊的文件，写入到它的内容都会被丢弃；如果尝试从该文件读取内容，那么什么也读不到。但
+是 /dev/null 文件非常有用，将命令的输出重定向到它，会起到"禁止输出"的效果。 如果希望屏蔽 stdout 和
+stderr，可以这样写：
+
+
+
+### 8.6 shell与信号
+
+shell也可以用来处理信号
+
+- trap "commmands" signal-list：当脚本收到signal-list清单内列出的信号时，trap命令执行括号中的命令
+- trap signal-list，trap不指定任何命令，接受信号的默认操作。默认操作是结束进程的的运行
+- trap "" signal-list，trap指定一个空命令串，允许忽略信号
+
+
+
+## 9. shell文件包含
+
+``` shell
+[yk@localhost 3_lesson]$ ./test.sh 
+3
+[yk@localhost 3_lesson]$ cat api.sh 
+function myAdd()
+{
+  return $(($1 + $2))
+}
+[yk@localhost 3_lesson]$ cat test.sh 
+#!/bin/bash 
+
+. api.sh 
+
+myAdd 1 2
+echo $?
+```
+
+**【注意】：一定要使用`.`或者`source`来包含文件**
+
+
+
+## 10. shell运算符
+
+- **echo**
+
+ **显示换行**
+
+``` shell
+echo -e "OK! \n" # -e 开启转义
+echo "It is a test"
+```
+
+输出结果：
+
+``` shell
+OK!
+
+It is a test
+```
+
+**显示不换行**
+
+``` shell
+echo -e "OK! \c" # -e 开启转义 \c 不换行
+echo "It is a test"
+```
+
+输出结果：
+
+``` shell
+OK! It is a test
+```
+
+- **printf**
+
+printf 由 POSIX 标准所定义，因此使用 printf 的脚本比使用 echo 移植性好。
+
+printf 使用引用文本或空格分隔的参数，外面可以在 printf 中使用格式化字符串，还可以制定字符串的宽度、左右对齐方式等。默认 printf 不会像 echo 自动添加换行符，我们可以手动添加 \n。
+
+``` shell
+printf "%-10s %-8s %-4s\n" 姓名 性别 体重kg  
+printf "%-10s %-8s %-4.2f\n" 郭靖 男 66.1234 
+printf "%-10s %-8s %-4.2f\n" 杨过 男 48.6543 
+printf "%-10s %-8s %-4.2f\n" 郭芙 女 47.9876 
+
+
+姓名     性别   体重kg
+郭靖     男      66.12
+杨过     男      48.65
+郭芙     女      47.99
+```
+
+%s %c %d %f都是格式替代符
+
+%-10s 指一个宽度为10个字符（-表示左对齐，没有则表示右对齐），任何字符都会被显示在10个字符宽的字符内，如果不足则自动以空格填充，超过也会将内容全部显示出来。
+
+%-4.2f 指格式化为小数，其中.2指保留2位小数。
+
+
+
+``` shell
+# format-string为双引号
+printf "%d %s\n" 1 "abc"
+
+# 单引号与双引号效果一样 
+printf '%d %s\n' 1 "abc" 
+
+# 没有引号也可以输出
+printf %s abcdef
+
+# 格式只指定了一个参数，但多出的参数仍然会按照该格式输出，format-string 被重用
+printf %s abc def
+
+printf "%s\n" abc def
+
+printf "%s %s %s\n" a b c d e f g h i j
+
+# 如果没有 arguments，那么 %s 用NULL代替，%d 用 0 代替
+printf "%s and %d \n" 
+```
+
+输出结果：
+
+``` shell
+1 abc
+1 abc
+abcdefabcdefabc
+def
+a b c
+d e f
+g h i
+j  
+ and 0
+```
+
+
+
+## 11.  知识点
+
+fork炸弹
+
+```shell
+.() { . | . & }; .
+```
+
+
+
+eval就是对其参数，将其内容取出来，再次进行一次命令行处理
+
+例：
+
+```shell
+echo "Last Parament: \$$#"
+eval echo "Last Parament: \$$#"
+
+#./test.sh 1 2 3 4
+Last Parament: $5
+Last Parament: 4
+#取出最后一个命令行参数
+
+a=100
+echo '${'a'}' #S{a}
+eval echo '${'a'}' #100
+```
+
+
+
+## # 正则表达式
+
+###  1. 概念
+
+- 正则表达式是用于描述一组字符串特征的模式，用来匹配特定的字符串。通过特殊字符+普通字符来进行模式描述，从而达到文本匹配目的的工具
+
+**正则表达式目前被集成到了各种文本编辑器/文本处理工具当中**
+
+
+
+### 2. 应用场景
+
+- **验证：**表单提交时，进行用户密码验证
+- **查找：**从大量信息中快速提取指定的内容，在一批url中，查找指定url
+- **替换：**将指定格式的文本，进行正则匹配查找，直到之后进行特定替换（vim文本替替换等）
+
+【总结】：对于正则表达式来说主要功能就是**查找**，对于替换和验证也是基于查找的
+
+
+
+### 3. 正则表达式基本要素
+
+- 字符类
+- 数量限定符
+- 位置限定符
+- 特殊符号
+
+
+
+
+
+## crontab命令
+
+使用crontab命令可以在指定的时间执行一个shell脚本或者一系列Linux命令。例如管理员安排一个辈分任务使其每天都运行
+
+用法：
+
+- crontab -e：修改crontab文件，如果文件不存在会自动创建
+- crontab -l：显示crontab文件
+- crontab -r：删除crontab文件
+- crontab -ir：删除crontab文件前提醒用户
+
+**示例：**
+
+在12:01am运行，即每天凌晨过一分钟。这是一个恰当的进行备份的时间，因为此时系统负载不大
+
+``` linux
+1 0 * * * /root/bin/backup.sh
+```
+
+
+
+在每个工作日（Mon-Fri）11:59 pm都进行备份作业
+
+``` linux
+59 11 * * 1,2,3,4,5 /root/bin/backup.sh
+```
 
