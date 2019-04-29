@@ -1,0 +1,241 @@
+#include <stdio.h>
+#include <assert.h>
+#define SIZE 4
+
+static int max[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+int record[SIZE][8] = { 0 };
+int index = 0;
+
+//将一串数字转化为单个数字
+void Conversion(int* des, int src)
+{
+	assert(des);
+
+	for (int i = 0; src; i++)
+	{
+		des[i] = src % 10;
+		src /= 10;
+	}
+}
+
+void BinaryAntiCollisionAlgorithm(int src[][8], int size, int high)
+{
+	assert(src);
+
+	max[high] = 0;
+
+	int des[SIZE][8] = { 0 };
+	int i = 0, j = 0;
+	int y = 0, k = 0;
+	int flag = 0;
+	//判断哪些二进制序列小于请求的二进制序列
+	for (i = 0; i < size; i++)
+	{
+		k = 0;
+		//判断每一位是不是都小于max的
+		for (j = 7; j >= 0; j--)
+		{
+			if (src[i][j] > max[j])
+			{
+				break;
+			}
+		}
+
+		//小于max的标签将其放到des中,并且不能全为0
+		if ((src[i][0] == 0) && (src[i][1] == 0) && (src[i][2] == 0) && (src[i][3] == 0)
+			&& (src[i][4] == 0) && (src[i][5] == 0) &&
+			(src[i][6] == 0) && (src[i][7] == 0))
+		{
+			flag = 1;
+		}
+		else
+		{
+			flag = 0;
+		}
+
+		if ((j < 0) && !flag)
+		{
+			for (j = 0; j < 8; j++)
+			{
+				des[y][k++] = src[i][j];
+			}
+			y++;
+		}
+	}
+
+	//des中放置的是小于max的标签，y表示标签个数
+	//检测最高位是哪一位有碰撞了
+	if (y == 1)
+	{
+		printf("找到一个标签，标签为：");
+		for (j = 7; j >= 0; j--)
+		{
+			printf("%d", des[0][j]);
+			record[index][j] = des[0][j];
+		}
+		index++;
+		printf("\n");
+		return;
+	}
+	else
+	{
+		//碰撞的第一个标签
+		int first1[8] = { 0 };
+		int first2[8] = { 0 };
+		int first3[8] = { 0 };
+		int first4[8] = { 0 };
+
+		for (j = 7; j >= 0; j--)
+		{
+			first1[j] = des[0][j];
+		}
+		for (j = 7; j >= 0; j--)
+		{
+			first2[j] = des[1][j];
+		}
+		for (j = 7; j >= 0; j--)
+		{
+			first3[j] = des[2][j];
+		}
+		for (j = 7; j >= 0; j--)
+		{
+			first4[j] = des[3][j];
+		}
+
+		//找最高的碰撞位
+		for (i = 7; i >= 0; i--)
+		{
+			if (y == 4)
+			{
+				if ((first1[i] != first2[i]) || (first1[i] != first3[i]) || (first1[i] != first4[i]) ||
+					(first2[i] != first3[i]) || (first2[i] != first4[i]) || (first3[i] != first4[i]))
+				{
+					high = i;
+					break;
+				}
+			}
+			else if (y == 3)
+			{
+				if ((first1[i] != first2[i]) || (first1[i] != first3[i]) || (first2[i] != first3[i]))
+				{
+					high = i;
+					break;
+				}
+			}
+			else if (y == 2)
+			{
+				if ((first1[i] != first2[i]))
+				{
+					high = i;
+					break;
+				}
+			}
+		}
+		for (i = 0; i < 8; i++)
+		{
+			max[i] = 1;
+		}
+		BinaryAntiCollisionAlgorithm(des, y, high);
+	}
+}
+
+int main()
+{
+	//int src[SIZE][8] = { //四个标签
+	//	{1, 0, 0, 0, 1, 1, 0, 1},
+	//	{1, 1, 1, 1, 0, 1, 1, 1},
+	//	{0, 1, 1, 1, 0, 1, 0, 1},
+	//	{1, 0, 1, 0, 1, 0, 1, 0} 
+	//	};	
+	int src[SIZE][8] = { 0 };
+	int src1[SIZE][8] = { 0 };
+
+	int tmp[SIZE] = { 0 };
+	//手动输入电子标签的二进制序列
+	for (int i = 0; i < SIZE; i++)
+	{
+		printf("请输入标签%d的二进制序列(8位):", i + 1);
+		scanf("%d", &tmp[i]);
+	}
+
+	
+	for (int i = 0; i < 4; i++)
+	{
+		int temp[8] = { 0 };
+		Conversion(temp, tmp[i]);
+
+		for (int j = 7; j >= 0; j--)
+		{
+			src[i][j] = temp[j];
+			src1[i][j] = temp[j];
+		}
+	}
+
+	while (1)
+	{
+		for (int i = 0; i < 8; i++)
+		{
+			max[i] = 1;
+		}
+		BinaryAntiCollisionAlgorithm(src, SIZE, 8);
+
+		for (int i = 0; i < SIZE; i++)
+		{
+			for (int j = 0; j < 8; j++)
+			{
+				src[i][j] = src1[i][j];
+			}
+		}
+
+		int record_index = 0;
+		//判断要将那一个电子标签去掉
+		int i = 0, j = 0;
+		int flag = 0;
+		for (i = 0; i < SIZE; i++)
+		{
+			for (j = 7; j >= 0; j--)
+			{
+				if (!(src[i][j] == record[record_index][j]))
+				{
+					break;
+				}
+			}
+			if (j < 0)//表示完全匹配所以进行赋值为0
+			{
+				for (int y = 0; y < 8; y++)
+				{
+					src[i][y] = 0;
+					flag = 1;
+				}
+				if (flag == 1)
+				{
+					i = -1;//每一次删除一个之后再次从0开始查找删除，由于上去要加1，所以i变为-1
+					flag = 1;//改变之后flag仍然变为1
+				}
+				if (record_index < index - 1)
+				{
+					record_index++;
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
+		if (index == 4)
+		{
+			break;
+		}
+	}
+
+	/*printf("依次读出的标签的二进制序列号:\n");
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 7; j >= 0; j--)
+		{
+			printf("%d", des[i][j]);
+		}
+		printf("\n");
+	}*/
+	return 0;
+}
