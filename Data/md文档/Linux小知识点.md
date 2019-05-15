@@ -218,3 +218,98 @@
 
 
 
+## 17. 对于粘贴文档到vim时，格式不对
+
+> 进入粘贴模式：
+>
+> **`set paste`**
+>
+> 用完之后一定要退出粘贴模式
+>
+> **`set nopaste`**
+
+
+
+## 18. Linux下一个文件名最大为多少字节
+
+> 256字节
+
+
+
+## 19. 如何查看硬盘分区的的inode总数和已经使用的数量
+
+> **`df -i`**
+>
+> 插图：df命令
+>
+> ![](C:\Users\0\Pictures\Linux下的知识点\df命令.png)
+
+
+
+## 20.全文对齐
+
+> **`gg=G`**
+
+
+
+## 21.匹配大括号
+
+>  **`shfit+%`**匹配大括号的下一个括号
+
+
+
+## 22. Windows下使用MD5以及Linux下使用MD5
+
+**`certutil -hashfile filename md5sum`**
+
+
+
+## 23. 如何查看IO以及内存，CPU
+
+**`iostat`**
+
+查看内存和CPU使用情况：**`top`**
+
+内存：
+
+**`pmap`**
+
+``` c++
+//根据pid查看进程相关信息占用内存的情况
+pmap -d 5647
+```
+
+**`free`**
+
+查看Linux下整体内存的命令
+
+![](C:\Users\0\Pictures\Linux\free.png)
+
+查看内存的额定值
+
+**`cat /proc/meminfo`**
+
+![](C:\Users\0\Pictures\Linux\meminfo.png)
+
+
+
+## 24. df命令（disk file）
+
+查看Linux服务器的**文件系统的磁盘空间占用情况**
+
+**`df -i`**
+
+**显示inode信息**
+
+**`df -h`**
+
+方便阅读显示，直接**显示M，G等单位**
+
+**`df -k`**
+
+**以KB为单位显示**
+
+**`df -T`**
+
+**显示文件类型**
+

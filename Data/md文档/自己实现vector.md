@@ -228,9 +228,9 @@ namespace Myvector
     }
 
   private:
-    T* _start;
-    T* _finish;
-    T* _endofstorage;
+    T* _start;//开始处的地址
+    T* _finish;//最后一个数据的下一个地址
+    T* _endofstorage;//容量的下一个地址
   };
 }
 
